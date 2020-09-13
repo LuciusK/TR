@@ -1,3 +1,107 @@
+# rabin-karp
+class Solution:
+    def strStr(self, haystack: str, needle: str) -> int:
+        d = 256
+        q = 9997
+        n = len(haystack)
+        m = len(needle)
+        h = pow(d, m - 1) % q
+        p = 0
+        t = 0
+
+        if m > n:
+            return -1
+
+        for i in range(m):
+            p = (d * p + ord(needle[i])) % q
+            t = (d * t + ord(haystack[i])) % q
+        for s in range(n - m + 1):
+            if p == t:
+                match = True
+                for i in range(m):
+                    if needle[i] != haystack[s + i]:
+                        match = False
+                        break
+                if match:
+                    return s
+            if s < n - m:
+                t = (t - h * ord(haystack[s])) % q
+                t = (t * d + ord(haystack[s + m])) % q
+                t = (t + q) % q
+        return -1
+
+# 205
+class Solution:
+    def isIsomorphic(self, s: str, t: str) -> bool:
+        dict = {}
+        for i in range(len(s)):
+            if s[i] not in dict.keys():
+                if t[i] in dict.values():
+                    return False
+                dict[s[i]] = t[i]
+            else:
+                if dict[s[i]] != t[i]:
+                    return False
+        return True
+
+# 44
+class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        nrow = len(p) + 1
+        ncol = len(s) + 1
+
+        dp = [[False for _ in range(ncol)] for _ in range(nrow)]
+        dp[0][0] = True
+
+        if p.startswith("*"):
+            dp[1] = [True] * ncol
+
+        for m in range(1, nrow):
+            path = False
+            for n in range(1, ncol):
+                if p[m - 1] == "*":
+                    if dp[m - 1][0] == True:
+                        dp[m] = [True] * ncol
+                    if dp[m - 1][n] == True:
+                        path = True
+                    if path:
+                        dp[m][n] = True
+                elif p[m - 1] == "?" or p[m - 1] == s[n - 1]:
+                    dp[m][n] = dp[m - 1][n - 1]
+        return dp[-1][-1]
+
+# 10
+class Solution:
+    def isMatch(self, s: str, p: str) -> bool:
+        if not p:
+            return not s
+        if not s and len(p) == 1:
+            return False
+        
+        nrow = len(s) + 1
+        ncol = len(p) + 1
+
+        dp = [[False for c in range(ncol)] for _ in range(nrow)]
+        dp[0][0] = True
+        dp[0][1] = False
+        for c in range(2, ncol):
+            j = c - 1
+            if p[j] == "*":
+                dp[0][c] = dp[0][c - 2]
+        
+        for r in range(1, nrow):
+            i = r - 1
+            for c in range(1, ncol):
+                j = c - 1
+                if s[i] == p[j] or p[j] == ".":
+                    dp[r][c] = dp[r - 1][c - 1]
+                elif p[j] == "*":
+                    if p[j - 1] == s[i] or p[j - 1] == ".":
+                        dp[r][c] = dp[r - 1][c] or dp[r][c - 2]
+                    else:
+                        dp[r][c] = dp[r][c - 2]
+        return dp[-1][-1]
+
 # 5
 class Solution:
     def longestPalindrome(self, s: str) -> str:
@@ -55,85 +159,4 @@ class Solution:
             i -= 1
             j += 1
         return s[i + 1:j], j - i - 1
-
-# 680
-class Solution:
-    def validPalindrome(self, s: str) -> bool:
-        def checkPalindrome(low, high):
-            i, j = low, high
-            while i < j:
-                if s[i] != s[j]:
-                    return False
-                i += 1
-                j -= 1
-            return True
         
-        low, high = 0, len(s) - 1
-        while low < high:
-            if s[low] == s[high]:
-                low += 1
-                high -= 1
-            else:
-                return checkPalindrome(low + 1, high) or checkPalindrome(low, high - 1)
-
-# 190
-class Solution:
-    def reverseBits(self, n: int) -> int:
-        res = 0
-        for i in range(31, -1, -1):
-            res |= (((n >> (31 - i)) & 1) << i)
-        
-        return res
-
-    def reverseBits1(self, n: int) -> int:
-        res = 0
-        count = 0
-        while count < 32:
-            res <<= 1
-            res |= n & 1
-            n >>= 1
-            count += 1
-        
-        return res
-
-# 231
-class Solution:
-    def isPowerOfTwo(self, n: int) -> bool:
-        return n > 0 and n & n - 1 == 0
-
-# 455
-class Solution:
-    def findContentChildren(self, g: List[int], s: List[int]) -> int:
-        res = 0
-        g.sort()
-        s.sort()
-
-        g_length = len(g)
-        s_length = len(s)
-
-        i = 0
-        j = 0
-        while i < g_length and j < s_length:
-            if g[i] <= s[j]:
-                res += 1
-                i += 1
-                j += 1
-            else:
-                j += 1
-
-        return res
-
-# 55
-class Solution:
-    def canJump(self, nums: List[int]) -> bool:
-        if nums == [0]:
-            return True
-        maxDist = 0
-        end_index = len(nums) - 1
-        for i, jump in enumerate(nums):
-            if maxDist >= i and i + jump > maxDist:#最远距离大过终点index
-                maxDist = i + jump
-                if maxDist >= end_index:
-                    return True
-        
-        return False
