@@ -87,64 +87,79 @@ class WordDictionary(object):
             # 注意：这里要使用 return 返回
             return self.match(node.next[alpha], word, index + 1)
 
-# 231
+# 290
 class Solution:
-    def isPowerOfTwo(self, n: int) -> bool:
-        return n > 0 and n & n - 1 == 0
+    def wordPattern(self, pattern: str, s: str) -> bool:
+        res = s.split()
+        return list(map(pattern.index, pattern)) == list(map(res.index, res))
+    
 
-# 190
+# 389
+
 class Solution:
-    def reverseBits(self, n: int) -> int:
-        res = 0
-        for i in range(31, -1, -1):
-            res |= (((n >> (31 - i)) & 1) << i)
+    def findTheDifference(self, s: str, t: str) -> str:
+        return chr(sum(map(ord, t)) - sum(map(ord, s)))
+    
+    def findTheDifference1(self, s: str, t: str) -> str:
+        from collections import Counter
+        c1 = Counter(s)
+        c2 = Counter(t)
+        for i in range(ord("a"), ord("z") + 1):
+            tmp = chr(i)
+            if c2[tmp] - c1[tmp] == 1:
+                return tmp
+
+# 92
+
+class Solution: # a, c 包围这 m， n， 而b， d代表m， n
+    def reverseBetween(self, head: ListNode, m: int, n: int) -> ListNode:
+        if m == n:
+            return head
+        dummy = ListNode(-1)
+        dummy.next = head
+        a, d = dummy, dummy
+        for _ in range(m - 1):
+            a = a.next
+        for _ in range(n):
+            d = d.next        
+        b, c = a.next, d.next
+
+        # 开始逆转
+        pre = b
+        cur = pre.next
+
+        while cur != c:
+            next = cur.next
+            cur.next = pre
+            pre = cur
+            cur = next
+        a.next = d
+        b.next = c
+        return dummy.next
+
+# 61
+
+class Solution:
+    def rotateRight(self, head: ListNode, k: int) -> ListNode:
+        if not head:
+            return None
+        if not head.next:
+            return head
         
-        return res
+        old_tail = head
+        n = 1
+        while old_tail.next:
+            old_tail = old_tail.next
+            n += 1
+        old_tail.next = head
 
-    def reverseBits1(self, n: int) -> int:
-        res = 0
-        count = 0
-        while count < 32:
-            res <<= 1
-            res |= n & 1
-            n >>= 1
-            count += 1
-        
-        return res
+        # find new tail : (n - k % n - 1)th node
+        # and new head : (n - k % n)th node
+        new_tail = head
+        for i in range(n - k % n - 1):
+            new_tail = new_tail.next
+        new_head = new_tail.next
 
-# 55
-class Solution:
-    def canJump(self, nums: List[int]) -> bool:
-        if nums == [0]:
-            return True
-        maxDist = 0
-        end_index = len(nums) - 1
-        for i, jump in enumerate(nums):
-            if maxDist >= i and i + jump > maxDist:#最远距离大过终点index
-                maxDist = i + jump
-                if maxDist >= end_index:
-                    return True
-        
-        return False
+        new_tail.next = None
 
-# 455
-class Solution:
-    def findContentChildren(self, g: List[int], s: List[int]) -> int:
-        res = 0
-        g.sort()
-        s.sort()
-
-        g_length = len(g)
-        s_length = len(s)
-
-        i = 0
-        j = 0
-        while i < g_length and j < s_length:
-            if g[i] <= s[j]:
-                res += 1
-                i += 1
-                j += 1
-            else:
-                j += 1
-
-        return res
+        return new_head
