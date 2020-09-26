@@ -1,125 +1,155 @@
-# 231
+# 81
 class Solution:
-    def isPowerOfTwo(self, n: int) -> bool:
-        return n > 0 and n & n - 1 == 0
-
-# 190
-class Solution:
-    def reverseBits(self, n: int) -> int:
-        res = 0
-        for i in range(31, -1, -1):
-            res |= (((n >> (31 - i)) & 1) << i)
-        
-        return res
-
-    def reverseBits1(self, n: int) -> int:
-        res = 0
-        count = 0
-        while count < 32:
-            res <<= 1
-            res |= n & 1
-            n >>= 1
-            count += 1
-        
-        return res
-
-# 55
-class Solution:
-    def canJump(self, nums: List[int]) -> bool:
-        if nums == [0]:
-            return True
-        maxDist = 0
-        end_index = len(nums) - 1
-        for i, jump in enumerate(nums):
-            if maxDist >= i and i + jump > maxDist:#最远距离大过终点index
-                maxDist = i + jump
-                if maxDist >= end_index:
-                    return True
-        
+    def search(self, nums: List[int], target: int) -> bool:
+        l = 0
+        r = len(nums) - 1
+        while l <= r:
+            mid = (l + r) >> 1
+            if nums[mid] == target:
+                return True
+            
+            if nums[mid] == nums[l]:
+                l += 1
+            elif nums[mid] == nums[r]:
+                r -= 1
+            elif nums[mid] > nums[l]:
+                if nums[l] <= target < nums[mid]:
+                    r = mid - 1
+                else:
+                    l = mid + 1
+            elif nums[mid] < nums[r]:
+                if nums[mid] < target <= nums[r]:
+                    l = mid + 1
+                else:
+                    r = mid - 1
         return False
 
-# 455
+# 153
 class Solution:
-    def findContentChildren(self, g: List[int], s: List[int]) -> int:
-        res = 0
-        g.sort()
-        s.sort()
-
-        g_length = len(g)
-        s_length = len(s)
-
-        i = 0
-        j = 0
-        while i < g_length and j < s_length:
-            if g[i] <= s[j]:
-                res += 1
-                i += 1
-                j += 1
+    def findMin(self, nums: List[int]) -> int:
+        left, right = 0, len(nums) - 1
+        while left < right:
+            mid = (left + right) >> 1
+            if nums[mid] > nums[right]:
+                left = mid + 1
             else:
-                j += 1
+                right = mid
+        return nums[left]
 
+# 51
+class Solution:
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        res = []
+        if n == 0:
+            return res
+        
+        col = set()
+        slave = set()
+        master = set()
+        stack = []
+
+        self.__backtracking(0, n, col, slave, master, stack, res)
         return res
+    
+    def __backtracking(self, row, n, col, slave, master, stack, res):
+        if row == n:
+            board = self.__convert2board(stack, n)
+            res.append(board)
+            return
+        
+        for i in range(n):
+            if i not in col and row + i not in slave and row - i not in master:
+                stack.append(i)
+                col.add(i)
+                slave.add(row+i)
+                master.add(row-i)
 
-# 148
+                self.__backtracking(row+1, n, col, slave, master, stack, res)
+
+                master.remove(row-i)
+                slave.remove(row+i)
+                col.remove(i)
+                stack.pop()
+    
+    def __convert2board(self, stack, n):
+        return ["." * stack[i] + "Q" + "." * (n - stack[i] - 1) for i in range(n)]
+        
+    def solveNQueens1(self, n: int) -> List[List[str]]:
+        def DFS(queens, xy_dif, xy_sum):
+            p = len(queens)
+            if p == n:
+                result.append(queens)
+                return None
+            for q in range(n):
+                if q not in queens and p - q not in xy_dif and p + q not in xy_sum:
+                    DFS(queens + [q], xy_dif + [p - q], xy_sum + [p + q])
+        result = []
+        DFS([], [], [])
+        return [['.' * i  + 'Q' + '.' * (n-i-1) for i in sol] for sol in result]
+
+# 52
 class Solution:
-    def sortList(self, head: ListNode) -> ListNode:
-        if not head or not head.next:
-            return head
-        slow, fast = head, head.next
-        while fast and fast.next:
-            fast, slow = fast.next.next, slow.next 
-        midnext, slow.next = slow.next, None
-        left, right = self.sortList(head), self.sortList(midnext)
+    def totalNQueens(self, n: int) -> int:
+        if n < 1:
+            return 
+        self.count = 0
+        self.DFS(n, 0, 0, 0, 0)
+        return self.count
 
-        h = res = ListNode(0)
-        while left and right:
-            if left.val < right.val:
-                h.next, left = left, left.next 
+    def DFS(self, n, row, cols, lfs, rfs):
+        if row >= n:
+            self.count += 1
+            return 
+        
+        bits = (~(cols | lfs | rfs)) & ((1 << n) - 1) # 得到当前所有的空位
+
+        while bits:
+            p = bits & -bits # 取到最低位的1
+            bits = bits & (bits - 1) # 表示在p位置上放入皇后
+            self.DFS(n, row + 1, cols | p, (lfs | p) << 1, (rfs | p) >> 1)
+            # 不需要revert  cols, lfs, rfs 的状态
+
+# 45
+class Solution:
+    def jump(self, nums: List[int]) -> int:
+        end = 0
+        maxPosition = 0#能力最大范围
+        steps = 0
+        for i in range(len(nums)-1):#不取最后一位是因为不让下面i==end的条件成立，也就是不让steps再加1
+            maxPosition = max(maxPosition, nums[i] + i)
+            if i == end:#到了倒数第二个位置之后，因为非空限制，肯定能到最后一个位置
+                end = maxPosition#倘若到了倒数第二位都没有更新end，那也不用再更新了，因为max一定大于等于最后一位
+                steps += 1
+        return steps
+
+# 69
+class Solution:
+    def mySqrt(self, x: int) -> int:
+        if x == 0:
+            return 0
+        
+        left = 1
+        right = x // 2#一般来说大于4的数，其二分之一的平方都小于他本身
+
+        while left < right:
+            mid = (left + right + 1) >> 1#使用右中位数会防止进入死循环
+            square = mid * mid
+
+            if square > x:#一步步紧逼目标数，直到取得square稍微小于等于目标数的数
+                right = mid - 1
             else:
-                h.next, right = right, right.next 
-            h = h.next 
-        h.next = left if left else right 
-        return res.next
-
-class Solution:
-    def sortList(self, head: ListNode) -> ListNode:
-        h, length, intv = head, 0, 1
-        while h:
-            h, length = h.next, length + 1
-        res = ListNode(0)
-        res.next = head
-        while intv < length:
-            pre, h = res, res.next 
-            while h:
-                h1, i = h, intv
-                while i and h:
-                    h, i = h.next, i - 1
-                if i:
-                    break
-                h2, i = h, intv
-                while i and h:
-                    h, i = h.next, i - 1
-                c1, c2 = intv, intv - i
-                while c1 and c2:
-                    if h1.val < h2.val:
-                        pre.next, h1, c1 = h1, h1.next, c1 - 1
-                    else:
-                        pre.next, h2, c2 = h2, h2.next, c2 - 1
-                    pre = pre.next 
-                pre.next = h1 if c1 else h2
-
-                while c1 > 0 or c2 > 0:
-                    pre, c1, c2 = pre.next, c1 - 1, c2 - 1
-                pre.next = h
-            intv *= 2
-        return res.next
-
-# 22
-class Solution:
-    def getKthFromEnd(self, head: ListNode, k: int) -> ListNode:
-        former, latter = head, head
-        for _ in range(k):
-            former = former.next
-        while former:
-            former, latter = former.next, latter.next 
-        return latter
+                left = mid
+        return left
+    
+    def mySqrt1(self, x: int) -> int:#可以使用牛顿迭代法的原因是平方根是x²-a的解
+        if x < 0:
+            raise Exception('不能输入负数')
+        if x == 0:
+            return 0
+        
+        cur = 1
+        while True:#迭代公式为x = x - f(x)/f'(x)
+            pre = cur
+            cur = (cur + x / cur) / 2
+            if abs(cur - pre) < 1e-6:
+                return int(cur)
